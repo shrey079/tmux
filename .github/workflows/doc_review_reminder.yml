@@ -1,0 +1,40 @@
+name: Documentation Review Reminder
+
+on:
+  schedule:
+    # Schedule to run at 00:00 on the 1st day of January and July (every 6 months)
+    - cron: "0 0 1 1,7 *"
+  workflow_dispatch:
+
+jobs:
+  create_issue:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Checkout source code
+        uses: "actions/checkout@v2.3.4"
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Create documentation review issue
+        run: |
+          new_issue_url=$(gh issue create \
+            --title "Biannual Documentation Review" \
+            --body "$BODY")
+          echo "New issue created: $new_issue_url"
+          echo "ISSUE_URL=$new_issue_url" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BODY: |
+            Hello, it's time for the biannual documentation review. Please review the documentation and update it if necessary. @documentation-reviewers
+
+            Please go over the following:
+
+            - Are all docs up to date?
+            - Is any information missing?
+            - Are there any new features or changes that need to be documented?
